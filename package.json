@@ -1,10 +1,10 @@
 {
-  "name": "@red-cup-engineering/cron-services-section",
+  "name": "@red-cup-engineering/cron-engineering-services-section",
   "version": "0.1.1",
   "description": "Owns the five-field cron calendar rule (crontab(5), as Kubernetes CronJob reads it with a timeZone): which instants a schedule names in an IANA time zone, across daylight saving. The one cron reading for every scheduler in the house.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/red-cup-engineering/cron-services-section.git"
+    "url": "git+https://github.com/red-cup-engineering/cron-engineering-services-section.git"
   },
   "type": "module",
   "keywords": [

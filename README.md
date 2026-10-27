@@ -16,3 +16,9 @@ Owns the five-field cron calendar rule: crontab(5) as Kubernetes' CronJob reads 
 Wall time is read in the zone. A wall time daylight saving skips does not occur, and a repeated one occurs once, at its first instant. A rule that matches no day in five years has no instant.
 
 The MetroPlat clock (organizing `work/recurring`) and the web platform's emulated scheduler read cron through this section. No other cron reading belongs in the house.
+
+### Missed/overdue calendar occurrences (a read, not task assignment)
+
+The `scheduledInstantsBetween(schedule, timeZone, startExclusive, endInclusive, { limit })` export enumerates bounded cron instants with `instants`, `hasMore`, and an exclusive `continuationAfter` cursor. It has a 256-instant page cap and a five-year window cap. It retains the existing local-zone DST rule: nonexistent wall minutes do not occur and repeated fall-back minutes occur once at their earliest instant. Replaying from the continuation cursor does not repeat or drop an occurrence.
+
+This is a **time-source primitive**, not a new scheduler, Work item, duty, agent assignment or effect receipt. Consumers must preserve the original source schedule identity/revision, occurrence instant, original Work/Office/Duty/Skill eligibility, carry-forward policy, deduplication and independent recipient receipts. A day tactic suggests potentially valuable work, not a compulsory new obligation. Organizing and MetroPlat own the actual staffing, Sessions and settlement.

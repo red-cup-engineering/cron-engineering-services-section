@@ -1,0 +1,61 @@
+name: Native source-owned cron recovery qualification
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'package.json'
+      - '.github/workflows/native-cron-recovery.yml'
+  push:
+    branches:
+      - main
+      - feat/bounded-occurrence-recovery-20261027
+permissions:
+  contents: read
+jobs:
+  native-cron-and-packed-consumer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Read exact original source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - name: Use supported Node 22 without implicit package-manager cache
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Execute original native source tests
+        run: |
+          node --check src/schedule.mjs
+          node --check test/schedule.test.mjs
+          npm test
+      - name: Receive real tarball's unchanged five-field DST contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          dist="$(mktemp -d)"
+          consumer="$(mktemp -d)"
+          npm pack --offline --ignore-scripts --pack-destination "$dist" --silent
+          shopt -s nullglob
+          packages=("$dist"/*.tgz)
+          [[ ${#packages[@]} -eq 1 ]]
+          npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$consumer" "${packages[0]}"
+          cd "$consumer"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {scheduledInstantsBetween} from '@red-cup-engineering/cron-services-section/schedule';
+          const hours=scheduledInstantsBetween('0 9 * * MON','America/Chicago',
+            '2026-10-20T00:00:00Z','2026-11-03T00:00:00Z');
+          assert.deepEqual(hours.instants.map(ms=>new Date(ms).toISOString()),
+            ['2026-10-26T14:00:00.000Z','2026-11-02T15:00:00.000Z']);
+          assert.equal(hours.hasMore,false);
+          const left=scheduledInstantsBetween('* * * * *','UTC',
+            '2026-10-26T14:00:00Z','2026-10-26T14:04:00Z',{limit:2});
+          const right=scheduledInstantsBetween('* * * * *','UTC',left.continuationAfter,
+            '2026-10-26T14:04:00Z',{limit:2});
+          assert.equal(new Set([...left.instants,...right.instants]).size,4);
+          assert.equal(right.hasMore,false);
+          console.log('Packed cron schedule received: real DST and no duplicated restart occurrences');
+          NODE

@@ -230,3 +230,51 @@ export function isScheduledAt(schedule, timeZone, at) {
   const ms = msOf(at);
   return ms % MINUTE_MS === 0 && latestScheduledAtOrBefore(schedule, timeZone, ms) === ms;
 }
+
+
+/**
+ * Enumerate scheduled instants in (startExclusive, endInclusive] with bounded
+ * pages and a replayable exclusive cursor. A calendar occurrence is not a
+ * Work obligation, a wake-up, an assignment or permission to perform an effect.
+ * Consumers retain their own source identity, custody and settlement.
+ *
+ * @param {string | ReturnType<typeof cronRuleOf>} schedule
+ * @param {string} timeZone
+ * @param {number | string} startExclusive epoch-ms instant or ISO string
+ * @param {number | string} endInclusive epoch-ms instant or ISO string
+ * @param {{limit?: number}} options
+ * @returns {{ instants: readonly number[], hasMore: boolean, continuationAfter: number | null }}
+ */
+export function scheduledInstantsBetween(schedule, timeZone, startExclusive, endInclusive, { limit = 128 } = {}) {
+  const start = msOf(startExclusive);
+  const end = msOf(endInclusive);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) {
+    throw new TypeError("cron: occurrence bounds must be instants");
+  }
+  if (start > end) throw new RangeError("cron: occurrence start is after end");
+  if (end - start > SEARCH_DAYS * DAY_MS) {
+    throw new RangeError("cron: occurrence window exceeds the five-year search horizon");
+  }
+  if (!Number.isInteger(limit) || limit < 1 || limit > 256) {
+    throw new RangeError("cron: occurrence page limit must be an integer from 1 through 256");
+  }
+  const rule = ruleOf(schedule);
+  assertTimeZone(timeZone);
+  const instants = [];
+  let cursor = start;
+  while (instants.length < limit) {
+    const next = nextScheduledAfter(rule, timeZone, cursor);
+    if (next === undefined || next > end) {
+      return Object.freeze({ instants: Object.freeze(instants), hasMore: false, continuationAfter: null });
+    }
+    instants.push(next);
+    cursor = next;
+  }
+  const following = nextScheduledAfter(rule, timeZone, cursor);
+  const hasMore = following !== undefined && following <= end;
+  return Object.freeze({
+    instants: Object.freeze(instants),
+    hasMore,
+    continuationAfter: hasMore ? cursor : null,
+  });
+}

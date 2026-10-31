@@ -15,7 +15,7 @@ Owns the five-field cron calendar rule: crontab(5) as Kubernetes' CronJob reads 
 
 Wall time is read in the zone. A wall time daylight saving skips does not occur, and a repeated one occurs once, at its first instant. A rule that matches no day in five years has no instant.
 
-The MetroPlat clock (organizing `work/recurring`) and the web platform's emulated scheduler read cron through this section. No other cron reading belongs in the house.
+The MetroPlat clock (organizing `work/recurring`) and the web platform's emulated scheduler read cron through this section. No other cron reading belongs in the Group.
 
 ### Missed/overdue calendar occurrences (a read, not task assignment)
 

@@ -45,7 +45,7 @@ jobs:
           cd "$consumer"
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
-          import {scheduledInstantsBetween} from '@red-cup-engineering/cron-services-section/schedule';
+          import {scheduledInstantsBetween} from '@red-cup-engineering/cron-engineering-services-section/schedule';
           const hours=scheduledInstantsBetween('0 9 * * MON','America/Chicago',
             '2026-10-20T00:00:00Z','2026-11-03T00:00:00Z');
           assert.deepEqual(hours.instants.map(ms=>new Date(ms).toISOString()),

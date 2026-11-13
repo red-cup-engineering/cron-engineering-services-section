@@ -1,5 +1,5 @@
 /**
- * cron-services-section/schedule — the five-field cron calendar rule (POSIX crontab(5)) as
+ * cron-engineering-services-section/schedule — the five-field cron calendar rule (POSIX crontab(5)) as
  * Kubernetes' CronJob reads it: a `schedule` and the IANA `timeZone` it is read in. The rule
  * denotes a set of instants. This module is that denotation: whether an instant is scheduled, the
  * latest scheduled instant at or before a time, and the first one after it.
